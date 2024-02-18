@@ -77,6 +77,7 @@ int main()
     io::SerialConnector* m_sc;
     m_sc = new io::SerialConnector("COM6", 9600); // последовательный порт
     m_sc->Open();
+    char buffer[7];
 
     std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
@@ -144,15 +145,9 @@ int main()
             putText(img, to_string(angle_x) + " " + to_string(angle_y), Point(20, 40), FONT_HERSHEY_DUPLEX, 1, Scalar(0, 0, 0), 1); // вывод углов до лица
         }
 
-        int deg1 = face_x + angle_x;
-        int deg2 = face_y + angle_y;
-
-        char buffer[7];
-
-        sprintf_s(buffer, 7, "%d %d", deg1+45, deg2+20);
-
         if (face_x >= -45 && face_x <= 45 && face_y >= -20 && face_y <= 20)
         {
+            sprintf_s(buffer, 7, "%d %d", face_x + 45, face_y + 20);
             std::cout << buffer << std::endl;
             m_sc->Send(buffer, 7);
         }
