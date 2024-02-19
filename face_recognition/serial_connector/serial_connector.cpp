@@ -4,7 +4,6 @@
 
 namespace io
 {
-
     SerialConnector::SerialConnector(const std::string& port, size_t baudRate)
             : m_port(port), m_baudRate(baudRate)
     {
@@ -56,5 +55,4 @@ namespace io
             std::cerr << e.what() << " " << __FILE__ << " " << __LINE__ << std::endl;
         }
     }
-
 }

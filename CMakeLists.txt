@@ -17,7 +17,7 @@ link_directories(./opencv/lib) # указываем, где искать фай�
 include_directories(./asio/include)
 link_directories(./asio/lib)		 # указываем, где искать файлы для asio
 
-add_executable("${PROJECT_NAME}" main.cpp serial_connector/serial_connector.cpp)	# добавить исполняемый файл
+add_executable("${PROJECT_NAME}" robotDFM.cpp face_recognition/face_recognition.cpp face_recognition/serial_connector/serial_connector.cpp)	# добавить исполняемый файл
 
 target_link_libraries("${PROJECT_NAME}" optimized opencv_world490.lib)
 target_link_libraries("${PROJECT_NAME}" debug opencv_world490d.lib)
@@ -25,4 +25,4 @@ target_link_libraries("${PROJECT_NAME}" debug opencv_world490d.lib)
 file(COPY "res" DESTINATION "/")
 file(COPY "opencv" DESTINATION "/")
 file(COPY "asio" DESTINATION "/") 
-file(COPY "serial_connector" DESTINATION "/") 
+file(COPY "face_recognition" DESTINATION "/") 

@@ -1,4 +1,5 @@
 #pragma once
+
 #include <string>
 #include <asio.hpp>
 #include <iostream>
@@ -6,14 +7,17 @@
 
 namespace io
 {
-
-    class SerialConnector {
+    class SerialConnector
+    {
     public:
-
         SerialConnector(const std::string& port, size_t baudRate);
+
         ~SerialConnector() noexcept;
+
         void Open();
+
         bool IsOpen();
+
         void Close();
 
         template<typename T, typename = std::enable_if_t<sizeof(T) == sizeof(char)>>
@@ -82,8 +86,6 @@ namespace io
             //throw sv::Exception("Read Timed out",__FILE__,__LINE__);
         }
 
-
-
     private:
         std::string m_port;
         size_t m_baudRate;
@@ -91,4 +93,3 @@ namespace io
         asio::serial_port* m_serial_port;
     };
 }
-
