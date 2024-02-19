@@ -15,11 +15,6 @@
 using namespace std;
 using namespace cv;
 
-// функция для записи данных в порт
-void writeToSerial(asio::serial_port& port, const std::string& data) {
-    asio::write(port, asio::buffer(data));
-}
-
 // функция поворота изображения
 Mat rotate(const Mat& src, double angle)
 {
