@@ -3,7 +3,6 @@
 #include <asio.hpp>
 #include <iostream>
 #include <optional>
-#include "serial_connector.hpp"
 
 namespace io
 {
