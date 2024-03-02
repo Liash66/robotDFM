@@ -10,13 +10,16 @@
 #include "face_recognition.hpp"
 #include "serial_connector/serial_connector.hpp"
 
+#include <thread>
+#include <chrono>
+
 namespace camera
 {
     CameraCV::CameraCV(unsigned int index, std::string port)
     {
-        k = 126; // константа, связывающая расстояние до лица и сторону квадрата: c = k/a, где c - расстояние, a - сторона квадрата
+        k = 126; // РєРѕРЅСЃС‚Р°РЅС‚Р°, СЃРІСЏР·С‹РІР°СЋС‰Р°СЏ СЂР°СЃСЃС‚РѕСЏРЅРёРµ РґРѕ Р»РёС†Р° Рё СЃС‚РѕСЂРѕРЅСѓ РєРІР°РґСЂР°С‚Р°: c = k/a, РіРґРµ c - СЂР°СЃСЃС‚РѕСЏРЅРёРµ, a - СЃС‚РѕСЂРѕРЅР° РєРІР°РґСЂР°С‚Р°
         face_x = 0;
-        face_y = 0; // абсолютный угол поворота камеры
+        face_y = 0; // Р°Р±СЃРѕР»СЋС‚РЅС‹Р№ СѓРіРѕР» РїРѕРІРѕСЂРѕС‚Р° РєР°РјРµСЂС‹
         angle_x = 0;
         angle_y = 0;
         cam_index = index;
@@ -25,7 +28,7 @@ namespace camera
         facedetect.load("./res/haarcascades/haarcascade_frontalface_default.xml");
     }
 
-    // функция поворота изображения
+    // С„СѓРЅРєС†РёСЏ РїРѕРІРѕСЂРѕС‚Р° РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
     cv::Mat CameraCV::rotate(const cv::Mat& src, double angle)
     {
         cv::Mat dst;
@@ -35,14 +38,14 @@ namespace camera
         return dst;
     }
 
-    // получить координаты центра
+    // РїРѕР»СѓС‡РёС‚СЊ РєРѕРѕСЂРґРёРЅР°С‚С‹ С†РµРЅС‚СЂР°
     cv::Point2f CameraCV::get_center_rect(cv::Point2f tl, cv::Point2f br)
     {
         cv::Point2f center((tl.x + br.x) / 2, (tl.y + br.y) / 2);
         return center;
     }
 
-    // функция нахождения индекса самого переднего лица
+    // С„СѓРЅРєС†РёСЏ РЅР°С…РѕР¶РґРµРЅРёСЏ РёРЅРґРµРєСЃР° СЃР°РјРѕРіРѕ РїРµСЂРµРґРЅРµРіРѕ Р»РёС†Р°
     int CameraCV::get_front_face_index(std::vector<cv::Rect>& faces)
     {
         int front_face_index = 0;
@@ -57,14 +60,14 @@ namespace camera
         return front_face_index;
     }
 
-    // функция определения координат наклоненного лица
+    // С„СѓРЅРєС†РёСЏ РѕРїСЂРµРґРµР»РµРЅРёСЏ РєРѕРѕСЂРґРёРЅР°С‚ РЅР°РєР»РѕРЅРµРЅРЅРѕРіРѕ Р»РёС†Р°
     void CameraCV::determ_true_face_coord(std::vector<cv::Rect>& faces, const int front_face_index, int angle, const int video_width, int const video_height)
     {
-        // нахождение координат центра лица (из координат верхнего левого угла лица) в с.к. с центром в середине изображения
+        // РЅР°С…РѕР¶РґРµРЅРёРµ РєРѕРѕСЂРґРёРЅР°С‚ С†РµРЅС‚СЂР° Р»РёС†Р° (РёР· РєРѕРѕСЂРґРёРЅР°С‚ РІРµСЂС…РЅРµРіРѕ Р»РµРІРѕРіРѕ СѓРіР»Р° Р»РёС†Р°) РІ СЃ/Рє СЃ С†РµРЅС‚СЂРѕРј РІ СЃРµСЂРµРґРёРЅРµ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
         int face_X = faces[front_face_index].x + faces[front_face_index].width / 2 - video_width / 2;
         int face_Y = -faces[front_face_index].y - faces[front_face_index].height / 2 + video_height / 2;
 
-        // нахождение координат центра лица в с/к, повернутой обратно
+        // РЅР°С…РѕР¶РґРµРЅРёРµ РєРѕРѕСЂРґРёРЅР°С‚ С†РµРЅС‚СЂР° Р»РёС†Р° РІ СЃ/Рє, РїРѕРІРµСЂРЅСѓС‚РѕР№ РѕР±СЂР°С‚РЅРѕ
         angle = -angle;
         int old_x = static_cast<int>(face_X * cos(angle) - face_Y * sin(angle));
         int old_y = static_cast<int>(face_Y * cos(angle) + face_X * sin(angle));
@@ -74,7 +77,7 @@ namespace camera
             old_y = -old_y;
         }
 
-        // определение левого верхнего угла лица (из этого параметра мы находили центр лица)
+        // РѕРїСЂРµРґРµР»РµРЅРёРµ Р»РµРІРѕРіРѕ РІРµСЂС…РЅРµРіРѕ СѓРіР»Р° Р»РёС†Р° (РёР· СЌС‚РѕРіРѕ РїР°СЂР°РјРµС‚СЂР° РјС‹ РЅР°С…РѕРґРёР»Рё С†РµРЅС‚СЂ Р»РёС†Р°)
         faces[front_face_index].x = old_x - faces[front_face_index].width / 2 + video_width / 2;
         faces[front_face_index].y = -old_y - faces[front_face_index].height / 2 + video_height / 2;
     }
@@ -82,26 +85,50 @@ namespace camera
     void CameraCV::execute()
     {
         io::SerialConnector* m_sc;
-        m_sc = new io::SerialConnector(com_port, 9600); // последовательный порт
+        m_sc = new io::SerialConnector(com_port, 9600); // РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅС‹Р№ РїРѕСЂС‚
         m_sc->Open();
 
-        cv::VideoCapture video(cam_index); // выставляем индекс камеры
+        cv::VideoCapture video(cam_index); // РёРЅРґРµРєСЃ РєР°РјРµСЂС‹
 
-        char buffer[7];
+        char buffer[10];
+        int hand_angle; // СѓРіРѕР» РїРѕРІРѕСЂРѕС‚Р° СЂСѓРєРё
 
-        const int video_width = static_cast<int>(video.get(cv::CAP_PROP_FRAME_WIDTH)); // ширина видеопотока
-        const int video_height = static_cast<int>(video.get(cv::CAP_PROP_FRAME_HEIGHT)); // высота видеопотока
+        const int video_width = static_cast<int>(video.get(cv::CAP_PROP_FRAME_WIDTH)); // С€РёСЂРёРЅР° РІРёРґРµРѕРїРѕС‚РѕРєР°
+        const int video_height = static_cast<int>(video.get(cv::CAP_PROP_FRAME_HEIGHT)); // РІС‹СЃРѕС‚Р° РІРёРґРµРѕРїРѕС‚РѕРєР°
+
+        std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now(); // С‚Р°Р№РјРµСЂ
+        std::chrono::seconds mid_time(30);
+        std::chrono::seconds reset_time(60); // РІСЂРµРјСЏ, С‡РµСЂРµР· РєРѕС‚РѕСЂРѕРµ РЅСѓР¶РЅРѕ РѕР±РЅСѓР»РёС‚СЊ С‚Р°Р№РјРµСЂ
 
         while (true)
         {
-            video >> img; // получение текущего изображения
-            cv::Point center(static_cast<int>((img.cols - 1) / 2.0), static_cast<int>((img.rows - 1) / 2.0)); // центр изображения
+            std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+            std::chrono::duration<double> elapsed_seconds = end - start;
 
-            std::vector<cv::Rect> faces; // создание массива с лицами
+            // РїРѕРІРѕСЂРѕС‚ СЂСѓРєРё СЂР°Р· РІ 30 СЃРµРє
+            if (elapsed_seconds < mid_time)
+            {
+                hand_angle = 90;
+            }
+            else if (elapsed_seconds > mid_time)
+            {
+                hand_angle = 0;
+            }
 
-            int angle = 0; // угол наклона лица
+            // РѕР±РЅСѓР»СЏРµРј С‚Р°Р№РјРµСЂ
+            if (elapsed_seconds > reset_time)
+            {
+                start = std::chrono::steady_clock::now();
+            }
 
-            // поворачиваем на 35 градусов влево/вправо пока не найдем лицо или дойдем до остановы и сохраняем параметры лица под найденным углом
+            video >> img; // РїРѕР»СѓС‡РµРЅРёРµ С‚РµРєСѓС‰РµРіРѕ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
+            cv::Point center(static_cast<int>((img.cols - 1) / 2.0), static_cast<int>((img.rows - 1) / 2.0)); // С†РµРЅС‚СЂ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
+
+            std::vector<cv::Rect> faces; // СЃРѕР·РґР°РЅРёРµ РјР°СЃСЃРёРІР° СЃ Р»РёС†Р°РјРё
+
+            int angle = 0; // СѓРіРѕР» РЅР°РєР»РѕРЅР° Р»РёС†Р°
+
+            // РїРѕРІРѕСЂР°С‡РёРІР°РµРј РЅР° 35 РіСЂР°РґСѓСЃРѕРІ РІР»РµРІРѕ/РІРїСЂР°РІРѕ РїРѕРєР° РЅРµ РЅР°Р№РґРµРј Р»РёС†Рѕ РёР»Рё РґРѕР№РґРµРј РґРѕ РѕСЃС‚Р°РЅРѕРІС‹ Рё СЃРѕС…СЂР°РЅСЏРµРј РїР°СЂР°РјРµС‚СЂС‹ Р»РёС†Р° РїРѕРґ РЅР°Р№РґРµРЅРЅС‹Рј СѓРіР»РѕРј
             facedetect.detectMultiScale(rotate(img, angle), faces, 1.3, 5);
             if (faces.empty()) {
                 angle = 35;
@@ -122,36 +149,49 @@ namespace camera
 
             if (!faces.empty()) {
 
-                int front_face_index = get_front_face_index(faces); // индекс переднего лица
+                int front_face_index = get_front_face_index(faces); // РёРЅРґРµРєСЃ РїРµСЂРµРґРЅРµРіРѕ Р»РёС†Р°
 
-                // определение координат лица из перевернутого изображения
+                // РѕРїСЂРµРґРµР»РµРЅРёРµ РєРѕРѕСЂРґРёРЅР°С‚ Р»РёС†Р° РёР· РїРµСЂРµРІРµСЂРЅСѓС‚РѕРіРѕ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
                 if (angle != 0)
                     determ_true_face_coord(faces, front_face_index, angle, video_width, video_height);
 
-                side = faces[front_face_index].height;  //  сторона квадрата лица
-                leg_y = (get_center_rect(faces[front_face_index].tl(), faces[front_face_index].br()).y - static_cast<float>(center.y)) * 0.000264;   // расстояние между центром лица и изображения камеры по вертикали
-                leg_x = (get_center_rect(faces[front_face_index].tl(), faces[front_face_index].br()).x - static_cast<float>(center.x)) * 0.000264;   // расстояние между центром лица и изображения камеры по горизонтали
-                dist = k / side;    // дистанция от камеры до лица
-                angle_y = static_cast<int>(-atan(leg_y / dist) * 180 / acos(-1)); // добавочный угол Y
-                angle_x = static_cast<int>(-atan(leg_x / dist) * 180 / acos(-1)); // добавочный угол X
+                side = faces[front_face_index].height;  //  СЃС‚РѕСЂРѕРЅР° РєРІР°РґСЂР°С‚Р° Р»РёС†Р°
+                leg_y = (get_center_rect(faces[front_face_index].tl(), faces[front_face_index].br()).y - static_cast<float>(center.y)) * 0.000264;   // СЂР°СЃСЃС‚РѕСЏРЅРёРµ РјРµР¶РґСѓ С†РµРЅС‚СЂРѕРј Р»РёС†Р° Рё РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РєР°РјРµСЂС‹ РїРѕ РІРµСЂС‚РёРєР°Р»Рё
+                leg_x = (get_center_rect(faces[front_face_index].tl(), faces[front_face_index].br()).x - static_cast<float>(center.x)) * 0.000264;   // СЂР°СЃСЃС‚РѕСЏРЅРёРµ РјРµР¶РґСѓ С†РµРЅС‚СЂРѕРј Р»РёС†Р° Рё РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РєР°РјРµСЂС‹ РїРѕ РіРѕСЂРёР·РѕРЅС‚Р°Р»Рё
+                dist = k / side;    // РґРёСЃС‚Р°РЅС†РёСЏ РѕС‚ РєР°РјРµСЂС‹ РґРѕ Р»РёС†Р°
+                angle_y = static_cast<int>(-atan(leg_y / dist) * 180 / acos(-1)); // РґРѕР±Р°РІРѕС‡РЅС‹Р№ СѓРіРѕР» Y
+                angle_x = static_cast<int>(-atan(leg_x / dist) * 180 / acos(-1)); // РґРѕР±Р°РІРѕС‡РЅС‹Р№ СѓРіРѕР» X
 
-                face_x += angle_x;  // угол машинки оси X
-                face_y += angle_y;  // угол машинки оси Y
+                face_x += angle_x;  // СѓРіРѕР» РјР°С€РёРЅРєРё РѕСЃРё X
+                face_y += angle_y;  // СѓРіРѕР» РјР°С€РёРЅРєРё РѕСЃРё Y
 
-                rectangle(img, faces[front_face_index].tl(), faces[front_face_index].br(), cv::Scalar(0, 255, 0), 5); // построение рамки лица
-                putText(img, std::to_string(angle_x) + " " + std::to_string(angle_y), cv::Point(20, 40), cv::FONT_HERSHEY_DUPLEX, 1, cv::Scalar(0, 0, 0), 1); // вывод углов до лица
+                rectangle(img, faces[front_face_index].tl(), faces[front_face_index].br(), cv::Scalar(0, 255, 0), 5); // РїРѕСЃС‚СЂРѕРµРЅРёРµ СЂР°РјРєРё Р»РёС†Р°
+                putText(img, std::to_string(angle_x) + " " + std::to_string(angle_y), cv::Point(20, 40), cv::FONT_HERSHEY_DUPLEX, 1, cv::Scalar(0, 0, 0), 1); // РІС‹РІРѕРґ СѓРіР»РѕРІ РґРѕ Р»РёС†Р°
             }
 
             if (face_x >= -45 && face_x <= 45 && face_y >= -20 && face_y <= 20)
             {
-                sprintf_s(buffer, 7, "%d %d", (face_x + 45), (face_y + 20));
-                std::cerr << buffer << std::endl;
-                m_sc->Send(buffer, 7);
+                // РљРѕРїРёСЂСѓРµРј РїРµСЂРІРѕРµ С‡РёСЃР»Рѕ РІ Р±СѓС„РµСЂ
+                sprintf_s(buffer, "%d", face_x + 45);
+                strcat_s(buffer, " ");
+
+                // РљРѕРїРёСЂСѓРµРј РІС‚РѕСЂРѕРµ С‡РёСЃР»Рѕ РІ Р±СѓС„РµСЂ
+                strcat_s(buffer, std::to_string(face_y + 20).c_str());
+                strcat_s(buffer, " ");
+
+                // РљРѕРїРёСЂСѓРµРј С‚СЂРµС‚СЊРµ С‡РёСЃР»Рѕ РІ Р±СѓС„РµСЂ
+                strcat_s(buffer, std::to_string(hand_angle).c_str());
+
+                // Р’С‹РІРѕРґРёРј СЃРѕРґРµСЂР¶РёРјРѕРµ Р±СѓС„РµСЂР°
+                std::cout << buffer << std::endl;
+                m_sc->Send(buffer, 10);
             }
 
-            //выводим изображение
+            //РІС‹РІРѕРґРёРј РёР·РѕР±СЂР°Р¶РµРЅРёРµ
             std::cerr << faces.size() << std::endl;
             imshow("Eye", img);
+
+            std::cerr << "Timer value: " << elapsed_seconds.count() << " seconds" << std::endl;
 
             if (cv::waitKey(10) >= 0)
                 break;
