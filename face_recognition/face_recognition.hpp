@@ -20,22 +20,22 @@ namespace camera
         cv::CascadeClassifier facedetect;
 
     private:
-        // повернуть изображение
+        // РїРѕРІРµСЂРЅСѓС‚СЊ РёР·РѕР±СЂР°Р¶РµРЅРёРµ
         static cv::Mat rotate(const cv::Mat& src, double angle);
 
-        // получить координаты центра
+        // РїРѕР»СѓС‡РёС‚СЊ РєРѕРѕСЂРґРёРЅР°С‚С‹ С†РµРЅС‚СЂР°
         static cv::Point2f get_center_rect(cv::Point2f tl, cv::Point2f br);
 
-        // найти индекс самого переднего лица
+        // РЅР°Р№С‚Рё РёРЅРґРµРєСЃ СЃР°РјРѕРіРѕ РїРµСЂРµРґРЅРµРіРѕ Р»РёС†Р°
         static int get_front_face_index(std::vector<cv::Rect>& faces);
 
-        // определить координаты наклоненного лица
+        // РѕРїСЂРµРґРµР»РёС‚СЊ РєРѕРѕСЂРґРёРЅР°С‚С‹ РЅР°РєР»РѕРЅРµРЅРЅРѕРіРѕ Р»РёС†Р°
         static void determ_true_face_coord(std::vector<cv::Rect>& faces, int front_face_index, int angle, int video_width, int video_height);
 
-        // найти лица
+        // РЅР°Р№С‚Рё Р»РёС†Р°
         static void find_faces(cv::CascadeClassifier& facedetect, const cv::Mat& img, std::vector<cv::Rect_<int>>& faces, int& angle);
 
-        // определить добавочные углы для поворота приводов
+        // РѕРїСЂРµРґРµР»РёС‚СЊ РґРѕР±Р°РІРѕС‡РЅС‹Рµ СѓРіР»С‹ РґР»СЏ РїРѕРІРѕСЂРѕС‚Р° РїСЂРёРІРѕРґРѕРІ
         static void determ_additional_angles(std::vector<cv::Rect_<int>>& faces, int front_face_index, cv::Point img_center, int& angle_x, int& angle_y);
 
     public:
