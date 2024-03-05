@@ -5,7 +5,7 @@
     Note that the detector only detects vertically oriented silverware,
     so you should care of the proper image orientation
     (probably should run detector several times).
-    It also assumes the "top view" when the camera optical axis is orthogonal to the table plane.
+    It also assumes the "top view" when the robot optical axis is orthogonal to the table plane.
 -->
 <opencv_storage>
 <cascade>
