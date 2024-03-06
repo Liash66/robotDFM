@@ -7,17 +7,16 @@
 
 #include "serial_connector/serial_connector.hpp"
 
-namespace camera
+namespace robot
 {
-    class CameraCV
+    class Robot
     {
     private:
-        int face_x, face_y;
-        int angle_x, angle_y;
-        int cam_index;
-        std::string com_port;
-        cv::Mat img;
-        cv::CascadeClassifier facedetect;
+        int m_angle_x, m_angle_y; // углы поворота головы
+        int m_add_angle_x, m_add_angle_y; // добавочные углы поворота головы
+        int m_left_arm_angle{}; // угол левой руки
+        int m_cam_index; // индекс камеры
+        std::string m_com_port; // номер COM порта
 
     private:
         // повернуть изображение
@@ -38,9 +37,12 @@ namespace camera
         // определить добавочные углы для поворота приводов
         static void determ_additional_angles(std::vector<cv::Rect_<int>>& faces, int front_face_index, cv::Point img_center, int& angle_x, int& angle_y);
 
+        // определить угол для левой руки
+        static void determ_left_arm_angle(std::chrono::steady_clock::time_point &start, std::chrono::duration<double> &elapsed_seconds, int &angle);
+
     public:
-        CameraCV(int index, std::string port);
-        ~CameraCV() = default;
+        Robot(int index, std::string port);
+        ~Robot() = default;
 
         void execute();
     };
