@@ -16,9 +16,10 @@ namespace robot
         int m_add_angle_x, m_add_angle_y; // добавочные углы поворота головы
         int m_left_arm_angle{}; // угол левой руки
         int m_cam_index; // индекс камеры
-        std::string m_com_port; // номер COM порта
+        std::string m_com_port; // номер COM порт
 
-    private:
+        static void SetPosition(io::SerialConnector* m_sc, int p1, int p2, int p3);
+
         // повернуть изображение
         static cv::Mat rotate(const cv::Mat& src, double angle);
 
@@ -36,9 +37,6 @@ namespace robot
 
         // определить добавочные углы для поворота приводов
         static void determ_additional_angles(std::vector<cv::Rect_<int>>& faces, int front_face_index, cv::Point img_center, int& angle_x, int& angle_y);
-
-        // определить угол для левой руки
-        static void determ_left_arm_angle(std::chrono::steady_clock::time_point &start, std::chrono::duration<double> &elapsed_seconds, int &angle);
 
     public:
         Robot(int index, std::string port);
