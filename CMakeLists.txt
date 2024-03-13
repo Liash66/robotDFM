@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8) # Проверка версии CMake.
+cmake_minimum_required(VERSION 3.5) # Проверка версии CMake.
 
 set(PROJECT_NAME robotDFM)
 project("${PROJECT_NAME}")
@@ -21,7 +21,7 @@ add_executable("${PROJECT_NAME}" main.cpp
                                     robot/Robot.cpp
                                     robot/serial_connector/serial_connector.cpp
                                     robot/head/head_moving/img_processing.h
-                                    robot/head/head_moving/driver_determination.h)
+                                    robot/head/head_moving/driver_determination.h robot/left_arm/left_arm_angle_determination.h)
 
 target_link_libraries("${PROJECT_NAME}" optimized opencv_world490.lib)
 target_link_libraries("${PROJECT_NAME}" debug opencv_world490d.lib)
