@@ -73,7 +73,7 @@ namespace robot
                     m_angle_x += m_add_angle_x; // угол привода оси x
                     m_angle_y += m_add_angle_y; // угол привода оси y
 
-                    SetPosition(m_sc, m_angle_x, m_add_angle_y, 0);
+                    SetPosition(m_sc, m_angle_x, m_angle_y, 0);
                 }
                 // В предельных углах поворота головы
                 else
@@ -84,7 +84,7 @@ namespace robot
                         m_angle_x = 0;
                         m_angle_y = 0;
 
-                        SetPosition(m_sc, m_angle_x, m_add_angle_y, 113);
+                        SetPosition(m_sc, m_angle_x, m_angle_y, 113);
                     }
                 }
             }
@@ -98,7 +98,7 @@ namespace robot
                     m_angle_x = 0;
                     m_angle_y = 0;
 
-                    SetPosition(m_sc, m_angle_x, m_add_angle_y, 113);
+                    SetPosition(m_sc, m_angle_x, m_angle_y, 113);
                 }
             }
 
