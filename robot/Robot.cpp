@@ -92,14 +92,10 @@ namespace robot
             // Если лицо не обнаружено
             else
             {
-                // Возвращаем голову в начальное положение
-                if (m_angle_x != 0 && m_angle_y != 0)
-                {
-                    m_angle_x = 0;
-                    m_angle_y = 0;
+                m_angle_x = 0;
+                m_angle_y = 0;
 
-                    SetPosition(m_sc, m_angle_x, m_angle_y, 113);
-                }
+                SetPosition(m_sc, m_angle_x, m_angle_y, 113);
             }
 
             std::cerr << "Faces number: " << faces.size() << std::endl;
