@@ -47,8 +47,7 @@ namespace robot
         const int video_width = static_cast<int>(video.get(cv::CAP_PROP_FRAME_WIDTH)); // ширина видеопотока
         const int video_height = static_cast<int>(video.get(cv::CAP_PROP_FRAME_HEIGHT)); // высота видеопотока
 
-        std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now(); // таймер
-        std::chrono::duration<double> elapsed_seconds{};
+        double k_eye = 0; // коэффициент смещения координаты центра по x с учетом глаза слева
 
         while (true)
         {
@@ -63,8 +62,15 @@ namespace robot
             {
                 int front_face_index = get_front_face_index(faces); // индекс ближайшего лица
                 determ_true_face_coord(faces, front_face_index, angle, video_width, video_height);
+
+                k_eye = 0.45 * (faces[front_face_index].br().x - faces[front_face_index].tl().x);
+
+                faces[front_face_index].x -= k_eye; // сдвиг координаты лица для правильного поворота головы относительно центра
                 determ_additional_angles(faces, front_face_index, img_center, m_add_angle_x, m_add_angle_y);
 
+                std::cerr << faces[front_face_index].br().x - faces[front_face_index].tl().x << std::endl;
+
+                faces[front_face_index].x += k_eye; // обратный сдвиг
                 rectangle(img, faces[front_face_index].tl(), faces[front_face_index].br(), cv::Scalar(0, 255, 0), 5); // построение рамки лица
 
                 // В пределах допустимых углов поворота головы
