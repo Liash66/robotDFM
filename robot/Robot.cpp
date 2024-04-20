@@ -71,8 +71,18 @@ namespace robot
                 std::cerr << faces[front_face_index].br().x - faces[front_face_index].tl().x << std::endl;
 
                 faces[front_face_index].x += k_eye; // обратный сдвиг
-                rectangle(img, faces[front_face_index].tl(), faces[front_face_index].br(), cv::Scalar(0, 255, 0), 5); // построение рамки лица
-
+                for (size_t i = 0; i < faces.size(); i++)
+                {
+                    if (i == front_face_index)
+                    {
+                        rectangle(img, faces[i].tl(), faces[i].br(), cv::Scalar(0, 0, 255), 5); // построение рамки ближайшего лица
+                    }
+                    else
+                    {
+                        rectangle(img, faces[i].tl(), faces[i].br(), cv::Scalar(0, 255, 0), 5); // построение рамок остальных лиц
+					}
+                }
+				
                 // В пределах допустимых углов поворота головы
                 if (((m_angle_x + m_add_angle_x) >= -45 && (m_angle_x + m_add_angle_x) <= 45) && ((m_angle_y + m_add_angle_y) >= -20 && (m_angle_y + m_add_angle_y) <= 20))
                 {
